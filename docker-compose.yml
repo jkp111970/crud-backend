@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  postgres-db:
+    image: postgres:16
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: cruddb
+      POSTGRES_USER: cruduser
+      POSTGRES_PASSWORD: crudpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  crud-backend:
+    build: .
+    container_name: crud-backend
+    depends_on:
+      - postgres-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/cruddb
+      SPRING_DATASOURCE_USERNAME: cruduser
+      SPRING_DATASOURCE_PASSWORD: crudpass
+      SPRING_JPA_DATABASE-PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  pg_data: 
