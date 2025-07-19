@@ -1,30 +1,112 @@
-### Get all books
-GET http://localhost:8080/api/books
+### Authentication and Authorization API Examples
 
-GET http://localhost:30080/api/books
-
-GET http://127.0.0.1:8080/api/books
-
-### Add a new book
-POST http://localhost:8080/api/books
+### 1. Register a new user
+POST http://localhost:8080/api/auth/register
 Content-Type: application/json
 
 {
-  "title": "Sample Book",
-  "author": "Sample Author"
+  "username": "newuser",
+  "email": "newuser@example.com",
+  "password": "password123"
 }
 
-### Get a book by ID
-GET http://localhost:8080/api/books/1
+### 2. Login with default user (USER role)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
 
-### Update a book by ID
+{
+  "username": "user",
+  "password": "user123"
+}
+
+### 3. Login with admin user (ADMIN role)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### 4. Login with moderator user (MODERATOR role)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "moderator",
+  "password": "moderator123"
+}
+
+### 5. Test authentication endpoint
+GET http://localhost:8080/api/auth/test
+
+### 6. Get all books (requires authentication)
+GET http://localhost:8080/api/books
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNzUyODk5OTA4LCJleHAiOjE3NTI5ODYzMDh9.u_WL77bJ59PYJbzc__PxqAW3nVCSOMoiV_CiSUdV8XI
+
+### 7. Get book by ID (requires authentication)
+GET http://localhost:8080/api/books/1
+Authorization: Bearer {{authToken}}
+
+### 8. Create a new book (requires ADMIN or MODERATOR role)
+POST http://localhost:8080/api/books
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNzUyODk5OTA4LCJleHAiOjE3NTI5ODYzMDh9.u_WL77bJ59PYJbzc__PxqAW3nVCSOMoiV_CiSUdV8XI
+
+{
+  "title": "New Book",
+  "author": "New Author",
+  "isbn": "1234567890123",
+  "publicationYear": 2024
+}
+
+### 9. Update a book (requires ADMIN or MODERATOR role)
 PUT http://localhost:8080/api/books/1
 Content-Type: application/json
+Authorization: Bearer {{authToken}}
 
 {
   "title": "Updated Book Title",
-  "author": "Updated Author"
+  "author": "Updated Author",
+  "isbn": "1234567890123",
+  "publicationYear": 2024
 }
 
-### Delete a book by ID
-DELETE http://localhost:8080/api/books/3
+### 10. Delete a book (requires ADMIN role only)
+DELETE http://localhost:8080/api/books/1
+Authorization: Bearer {{authToken}}
+
+### 11. Health check (public endpoint)
+GET http://localhost:8080/actuator/health
+
+### 12. Application info (public endpoint)
+GET http://localhost:8080/actuator/info
+
+### 13. Test unauthorized access (should return 401)
+GET http://localhost:8080/api/books
+
+### 14. Test forbidden access (USER trying to create book)
+POST http://localhost:8080/api/books
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
+{
+  "title": "Unauthorized Book",
+  "author": "Unauthorized Author",
+  "isbn": "1234567890123",
+  "publicationYear": 2024
+}
+
+### 15. Test forbidden access (MODERATOR trying to delete book)
+DELETE http://localhost:8080/api/books/1
+Authorization: Bearer {{moderatorToken}}
+
+### Notes:
+# 1. Replace {{authToken}}, {{userToken}}, {{moderatorToken}} with actual JWT tokens
+# 2. To get a token, first run the login request and copy the token from the response
+# 3. Different roles have different permissions:
+#    - USER: Can only read books
+#    - MODERATOR: Can read, create, and update books
+#    - ADMIN: Can perform all operations (CRUD)
+# 4. All book endpoints now require authentication
+# 5. Authentication endpoints (/api/auth/**) are public
